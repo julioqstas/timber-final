@@ -39,6 +39,7 @@ interface TimberState {
     addPackage: (pkg: Package) => Promise<void>;
     updatePackage: (id: string, pkg: Package) => Promise<void>;
     deletePackage: (id: string) => Promise<void>;
+    deletePackages: (ids: string[]) => Promise<void>;
 
     // Draft Actions
     addDraftLine: (largo: number, piezas: number) => void;
@@ -301,6 +302,32 @@ export const useTimberStore = create<TimberState>()(
                     const msg = e?.message || String(e);
                     console.error('Delete Package Error:', msg);
                     alert(`Error al eliminar paquete: ${msg}`);
+                    set({ error: msg });
+                }
+            },
+
+            deletePackages: async (ids: string[]) => {
+                try {
+                    const packagesToDelete = get().packages.filter(p => ids.includes(p.id));
+                    const dbIds = packagesToDelete.map(p => p.dbId).filter(Boolean);
+
+                    if (dbIds.length > 0) {
+                        // Delete details first
+                        await supabase.from('detalles_paquete').delete().in('paquete_id', dbIds);
+                        // Then delete packages
+                        const { error } = await supabase.from('paquetes').delete().in('id', dbIds);
+                        if (error) throw error;
+                    }
+
+                    // Update local state
+                    set(state => ({
+                        packages: state.packages.filter(p => !ids.includes(p.id))
+                    }));
+
+                } catch (e: any) {
+                    const msg = e?.message || String(e);
+                    console.error('Bulk Delete Error:', msg);
+                    alert(`Error al eliminar paquetes: ${msg}`);
                     set({ error: msg });
                 }
             },

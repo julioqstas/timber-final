@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Unlock, X } from 'lucide-react';
+import { Lock, Unlock, X, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { LoadCard } from '@/components/cards/LoadCard';
 import { LoadsTable } from '@/components/tables/LoadsTable';
@@ -48,6 +48,10 @@ export default function DashboardPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
+  // Stock Bulk Selection State
+  const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
+  const [isStockSelectionMode, setIsStockSelectionMode] = useState(false);
+
   // Unlock modal state
   const [unlockTarget, setUnlockTarget] = useState<string | null>(null);
   const [unlockPassword, setUnlockPassword] = useState('');
@@ -58,6 +62,7 @@ export default function DashboardPage() {
   const packages = useTimberStore((s) => s.packages);
   const config = useTimberStore((s) => s.config);
   const createLoad = useTimberStore((s) => s.createLoad);
+  const deletePackages = useTimberStore((s) => s.deletePackages); // Add this
   const addConfigItem = useTimberStore((s) => s.addConfigItem);
   const removeConfigItem = useTimberStore((s) => s.removeConfigItem);
   const reopenLoad = useTimberStore((s) => s.reopenLoad);
@@ -67,6 +72,55 @@ export default function DashboardPage() {
   const stockPackages = packages.filter((p) => p.destino === 'Stock Libres');
   const stockPT = stockPackages.reduce((sum, p) => sum + p.ptTotal, 0);
   const totalPT = packages.reduce((sum, p) => sum + p.ptTotal, 0);
+
+  // --- Bulk Selection Handlers (Stock) ---
+  const handleStockLongPress = (id: string) => {
+    setIsStockSelectionMode(true);
+    const newSet = new Set(selectedStockIds);
+    newSet.add(id);
+    setSelectedStockIds(newSet);
+    // Vibrate? navigator.vibrate(50) if available
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+  };
+
+  const handleStockToggle = (id: string) => {
+    const newSet = new Set(selectedStockIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedStockIds(newSet);
+    // Auto-exit if empty? Optional. WhatsApp stays in mode.
+    // If we want to stay in mode, do nothing. 
+    // If we want to exit when empty:
+    if (newSet.size === 0) setIsStockSelectionMode(false);
+  };
+
+  const handleStockSelectAll = () => {
+    if (selectedStockIds.size === stockPackages.length) {
+      // Deselect all
+      setSelectedStockIds(new Set());
+      setIsStockSelectionMode(false);
+    } else {
+      // Select all
+      const allIds = new Set(stockPackages.map(p => p.id));
+      setSelectedStockIds(allIds);
+      setIsStockSelectionMode(true);
+    }
+  };
+
+  const exitStockSelectionMode = () => {
+    setSelectedStockIds(new Set());
+    setIsStockSelectionMode(false);
+  };
+
+  const handleDeleteSelectedStock = async () => {
+    if (!confirm(`¿Estás seguro de eliminar ${selectedStockIds.size} paquetes? Esta acción no se puede deshacer.`)) return;
+
+    await deletePackages(Array.from(selectedStockIds));
+    exitStockSelectionMode();
+  };
 
   // Handlers
   const handleEdit = (id: string) => {
@@ -272,7 +326,7 @@ export default function DashboardPage() {
 
       {/* ==================== STOCK VIEW ==================== */}
       {appView === 'stock' && (
-        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in">
+        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in relative">
           {/* Stock summary card */}
           <div className="bg-surface-card rounded-card p-4 shadow-card border border-black/[0.02] mb-4 flex items-center justify-between">
             <div>
@@ -298,7 +352,14 @@ export default function DashboardPage() {
                 <InventoryList
                   packages={[...stockPackages].reverse()}
                   isLocked={false}
-                  onEdit={handleEdit}
+                  onEdit={(id) => {
+                    if (isStockSelectionMode) handleStockToggle(id);
+                    else handleEdit(id);
+                  }}
+                  selectionMode={isStockSelectionMode}
+                  selectedIds={selectedStockIds}
+                  onToggleSelection={handleStockToggle}
+                  onLongPress={handleStockLongPress}
                 />
               </div>
               {/* Desktop: Table */}
@@ -307,9 +368,38 @@ export default function DashboardPage() {
                   packages={[...stockPackages].reverse()}
                   isLocked={false}
                   onEdit={handleEdit}
+                  selectedIds={selectedStockIds}
+                  onToggleSelection={handleStockToggle}
+                  onSelectAll={handleStockSelectAll}
                 />
               </div>
             </>
+          )}
+
+          {/* Floating Action Bar for Bulk Delete */}
+          {selectedStockIds.size > 0 && (
+            <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-[300px] md:max-w-2xl md:mx-auto z-50 animate-in slide-in-from-bottom-4 fade-in duration-200">
+              <div className="bg-gray-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={exitStockSelectionMode}
+                    className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                  <span className="font-bold text-base">
+                    {selectedStockIds.size} seleccionados
+                  </span>
+                </div>
+                <button
+                  onClick={handleDeleteSelectedStock}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-bold text-sm transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Eliminar
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}

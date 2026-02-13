@@ -15,10 +15,12 @@ import { useLoadPackages, useStockPackages, useTimberStore } from '@/store/timbe
 import { SummaryTable } from '@/components/panels/SummaryTable';
 import { EstimatorSheet } from '@/components/panels/EstimatorSheet';
 import { InventoryList } from '@/components/panels/InventoryList';
+import { StockTable } from '@/components/tables/StockTable';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { calculateLoadBalance } from '@/lib/calculations';
 import { smartExportLoad } from '@/lib/export-excel';
 import { formatPT } from '@/lib/formatters';
+import { Trash2, X } from 'lucide-react';
 import type { PackageLine, Package } from '@/types/timber';
 
 export default function LoadDetailPage() {
@@ -37,9 +39,13 @@ export default function LoadDetailPage() {
     const [showStockPicker, setShowStockPicker] = useState(false);
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
+    const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set()); // For Stock Picker
     const [isExporting, setIsExporting] = useState(false);
     const [exportToast, setExportToast] = useState<string | null>(null);
+
+    // Bulk Delete State (Load Packages)
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
 
     // Store
     const packages = useLoadPackages(loadName);
@@ -48,6 +54,7 @@ export default function LoadDetailPage() {
     const updatePackage = useTimberStore((s) => s.updatePackage);
     const moveLoadToHistory = useTimberStore((s) => s.moveLoadToHistory);
     const deleteLoad = useTimberStore((s) => s.deleteLoad);
+    const deletePackages = useTimberStore((s) => s.deletePackages);
     const balance = calculateLoadBalance(packages);
     const isHistory =
         config.historyLoads.includes(loadName) || loadName === 'Despachado';
@@ -55,6 +62,10 @@ export default function LoadDetailPage() {
 
     // Handlers
     const handleEdit = (id: string) => {
+        if (isSelectionMode) {
+            handleToggleSelection(id);
+            return;
+        }
         if (isHistory) return;
         setEditingId(id);
         setShowCreator(true);
@@ -91,7 +102,54 @@ export default function LoadDetailPage() {
         setShowStockPicker(false);
     };
 
-    // Computed selection info
+    // Bulk Selection Handlers (Current Load)
+    const handleLongPress = (id: string) => {
+        if (isHistory || isStock) return; // Stock view handles its own selection in page.tsx, but here we reuse this page for stock?
+        // Wait, isStock here renders InventoryList using handleLongPress?
+        // Line 293 in original logic for isStock handled specific view.
+        // But wait, the user instructions earlier said Stock View is in `src/app/page.tsx`, and Load Detail is in `src/app/load/[name]/page.tsx`.
+        // However, `isStock` check existing in this file suggests `Stock Libres` CAN be viewed via this route too?
+        // If so, I should handle it. But standard Stock view is dashboard.
+        // Assuming this is for standard loads.
+        if (isHistory) return;
+        setIsSelectionMode(true);
+        const newSet = new Set(selectedItems);
+        newSet.add(id);
+        setSelectedItems(newSet);
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+    };
+
+    const handleToggleSelection = (id: string) => {
+        const newSet = new Set(selectedItems);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setSelectedItems(newSet);
+        if (newSet.size === 0) setIsSelectionMode(false);
+    };
+
+    const handleSelectAll = () => {
+        if (selectedItems.size === packages.length) {
+            setSelectedItems(new Set());
+            setIsSelectionMode(false);
+        } else {
+            setSelectedItems(new Set(packages.map(p => p.id)));
+            setIsSelectionMode(true);
+        }
+    };
+
+    const exitSelectionMode = () => {
+        setSelectedItems(new Set());
+        setIsSelectionMode(false);
+    };
+
+    const handleDeleteSelected = async () => {
+        if (!confirm(`¿Estás seguro de eliminar ${selectedItems.size} paquetes de esta carga?`)) return;
+        await deletePackages(Array.from(selectedItems));
+        exitSelectionMode();
+    };
+
+
+    // Computed selection info (Picker)
     const selectedCount = selectedStockIds.size;
     const selectedPT = stockPackages
         .filter(p => selectedStockIds.has(p.id))
@@ -224,7 +282,7 @@ export default function LoadDetailPage() {
                     )}
 
                     {/* Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto p-5 pt-0 pb-28 animate-fade-in">
+                    <div className="flex-1 overflow-y-auto p-5 pt-0 pb-28 animate-fade-in relative">
                         {/* Stock View */}
                         {isStock && (
                             <div className="pt-5 animate-fade-in">
@@ -259,6 +317,10 @@ export default function LoadDetailPage() {
                                     packages={[...packages].reverse()}
                                     isLocked={isHistory}
                                     onEdit={handleEdit}
+                                    selectionMode={isSelectionMode}
+                                    selectedIds={selectedItems}
+                                    onToggleSelection={handleToggleSelection}
+                                    onLongPress={handleLongPress}
                                 />
                             </div>
                         )}
@@ -266,7 +328,7 @@ export default function LoadDetailPage() {
                 </div>
 
                 {/* ===== DESKTOP LAYOUT (two columns, no tabs) ===== */}
-                <div className="hidden md:flex flex-row flex-1 min-h-0 overflow-hidden">
+                <div className="hidden md:flex flex-row flex-1 min-h-0 overflow-hidden relative">
                     {/* Left Column — Balance + Summary (sticky) */}
                     <div className="w-1/2 border-r border-gray-200 overflow-y-auto p-6">
                         {!isStock && (
@@ -295,14 +357,43 @@ export default function LoadDetailPage() {
                                 : `Lista de Paquetes (${packages.length})`
                             }
                         </div>
-                        <InventoryList
+                        <StockTable
                             packages={[...packages].reverse()}
-                            isLocked={isHistory || false}
+                            isLocked={isHistory}
                             onEdit={handleEdit}
+                            selectedIds={selectedItems}
+                            onToggleSelection={handleToggleSelection}
+                            onSelectAll={handleSelectAll}
                         />
                     </div>
                 </div>
             </div>
+
+            {/* Floating Action Bar for Bulk Delete */}
+            {selectedItems.size > 0 && (
+                <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-[55%] md:translate-x-0 md:max-w-xl z-[100] animate-in slide-in-from-bottom-4 fade-in duration-200">
+                    <div className="bg-gray-900 text-white rounded-full shadow-2xl px-6 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={exitSelectionMode}
+                                className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                            <span className="font-bold text-base">
+                                {selectedItems.size} seleccionados
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleDeleteSelected}
+                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-bold text-sm transition-colors"
+                        >
+                            <Trash2 size={16} />
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ==================== FLOATING FAB (Detail Page) ==================== */}
             {!isHistory && !isStock && (

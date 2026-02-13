@@ -13,14 +13,21 @@ interface InventoryListProps {
     packages: Package[];
     isLocked?: boolean;
     onEdit: (id: string) => void;
+    selectionMode?: boolean;
+    selectedIds?: Set<string>;
+    onToggleSelection?: (id: string) => void;
+    onLongPress?: (id: string) => void;
 }
 
-// Optimized component using React.memo to prevent unnecessary re-renders of the entire list
-// Future: Replace with `react-window` or `virtua` if lists exceed 500 items
+// Optimized component using React.memo
 export const InventoryList = memo(function InventoryList({
     packages,
     isLocked,
     onEdit,
+    selectionMode = false,
+    selectedIds = new Set(),
+    onToggleSelection,
+    onLongPress
 }: InventoryListProps) {
     if (packages.length === 0) {
         return (
@@ -35,7 +42,15 @@ export const InventoryList = memo(function InventoryList({
         <div className="flex flex-col animate-fade-in pb-24">
             {packages.map((pkg) => (
                 <div key={pkg.id} className="mb-3">
-                    <PackageCard pkg={pkg} locked={isLocked} onEdit={onEdit} />
+                    <PackageCard
+                        pkg={pkg}
+                        locked={isLocked}
+                        onEdit={onEdit}
+                        selectable={selectionMode}
+                        isSelected={selectedIds.has(pkg.id)}
+                        onToggle={onToggleSelection}
+                        onLongPress={onLongPress}
+                    />
                 </div>
             ))}
         </div>
