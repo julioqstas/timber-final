@@ -17,6 +17,7 @@ import { EstimatorSheet } from '@/components/panels/EstimatorSheet';
 import { InventoryList } from '@/components/panels/InventoryList';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { calculateLoadBalance } from '@/lib/calculations';
+import { smartExportLoad } from '@/lib/export-excel';
 import { formatPT } from '@/lib/formatters';
 import type { PackageLine, Package } from '@/types/timber';
 
@@ -37,6 +38,8 @@ export default function LoadDetailPage() {
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportToast, setExportToast] = useState<string | null>(null);
 
     // Store
     const packages = useLoadPackages(loadName);
@@ -106,9 +109,51 @@ export default function LoadDetailPage() {
         router.push('/');
     };
 
-    // Header action icons (WhatsApp-style) — only for active (non-history, non-stock) loads
+    // Smart Export handler
+    const handleExport = async () => {
+        if (isExporting || packages.length === 0) return;
+        setIsExporting(true);
+        setExportToast('Generando Excel...');
+        try {
+            await smartExportLoad(loadName, packages, isHistory);
+            setExportToast('¡Exportado! ✅');
+        } catch (err: any) {
+            console.error('Export failed:', err);
+            setExportToast('Error al exportar ❌');
+        } finally {
+            setIsExporting(false);
+            setTimeout(() => setExportToast(null), 2500);
+        }
+    };
+
+    // Export button — shared across all load states
+    const exportButton = (
+        <button
+            onClick={handleExport}
+            disabled={isExporting || packages.length === 0}
+            className={`bg-transparent border-none text-white p-1.5 cursor-pointer flex items-center justify-center rounded-full transition-colors ${isExporting ? 'opacity-50' : 'active:bg-white/10 hover:bg-white/10'}`}
+            aria-label="Exportar Excel"
+            title="Exportar Excel"
+        >
+            {isExporting ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <path d="M8 13h2" />
+                    <path d="M8 17h2" />
+                    <path d="M14 13h2" />
+                    <path d="M14 17h2" />
+                </svg>
+            )}
+        </button>
+    );
+
+    // Header action icons — Export appears ALWAYS, close/delete only for active loads
     const headerActions = !isHistory && !isStock ? (
         <>
+            {exportButton}
             {/* Close/Approve Load */}
             <button
                 onClick={() => setShowCloseConfirm(true)}
@@ -134,7 +179,10 @@ export default function LoadDetailPage() {
                 </svg>
             </button>
         </>
-    ) : null;
+    ) : (
+        // History or Stock → only export button
+        exportButton
+    );
 
     return (
         <AppShell
@@ -449,6 +497,18 @@ export default function LoadDetailPage() {
                     onClose={() => setShowEstimator(false)}
                     onConvertToPackage={handleTransfer}
                 />
+            )}
+
+            {/* Export Toast */}
+            {exportToast && (
+                <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+                    <div className="bg-gray-900/90 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-lg backdrop-blur-sm flex items-center gap-2">
+                        {isExporting && (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        )}
+                        {exportToast}
+                    </div>
+                </div>
             )}
         </AppShell>
     );
