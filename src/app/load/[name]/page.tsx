@@ -190,79 +190,117 @@ export default function LoadDetailPage() {
             subtitle={isHistory ? 'Carga Cerrada' : 'En Proceso'}
             headerActions={headerActions}
         >
-            <div className="flex flex-col h-full bg-surface-app">
+            <div className="flex flex-col md:flex-row h-full bg-surface-app">
 
-                {/* Fixed Header with Balance (Hidden for Stock) */}
-                {!isStock && (
-                    <div className="bg-surface-app p-5 pb-0 shrink-0 z-30">
-                        <BalancePanel balance={balance} />
+                {/* ===== MOBILE LAYOUT (single column with tabs) ===== */}
+                <div className="flex flex-col h-full md:hidden">
+                    {/* Fixed Header with Balance (Hidden for Stock) */}
+                    {!isStock && (
+                        <div className="bg-surface-app p-5 pb-0 shrink-0 z-30">
+                            <BalancePanel balance={balance} />
 
-                        {/* Tabs */}
-                        <div className="flex bg-gray-200/50 rounded-xl p-1 mb-4">
-                            <button
-                                className={`flex-1 py-2 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all ${tab === 'resumen'
-                                    ? 'bg-white text-timber-dark shadow-sm'
-                                    : 'bg-transparent text-timber-grey'
-                                    }`}
-                                onClick={() => setTab('resumen')}
-                            >
-                                Resumen
-                            </button>
-                            <button
-                                className={`flex-1 py-2 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all ${tab === 'inventario'
-                                    ? 'bg-white text-timber-dark shadow-sm'
-                                    : 'bg-transparent text-timber-grey'
-                                    }`}
-                                onClick={() => setTab('inventario')}
-                            >
-                                Lista de Paquetes
-                            </button>
+                            {/* Tabs */}
+                            <div className="flex bg-gray-200/50 rounded-xl p-1 mb-4">
+                                <button
+                                    className={`flex-1 py-2 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all ${tab === 'resumen'
+                                        ? 'bg-white text-timber-dark shadow-sm'
+                                        : 'bg-transparent text-timber-grey'
+                                        }`}
+                                    onClick={() => setTab('resumen')}
+                                >
+                                    Resumen
+                                </button>
+                                <button
+                                    className={`flex-1 py-2 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all ${tab === 'inventario'
+                                        ? 'bg-white text-timber-dark shadow-sm'
+                                        : 'bg-transparent text-timber-grey'
+                                        }`}
+                                    onClick={() => setTab('inventario')}
+                                >
+                                    Lista de Paquetes
+                                </button>
+                            </div>
                         </div>
+                    )}
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto p-5 pt-0 pb-28 animate-fade-in">
+                        {/* Stock View */}
+                        {isStock && (
+                            <div className="pt-5 animate-fade-in">
+                                <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
+                                    Stock Disponible ({packages.length})
+                                </div>
+                                <InventoryList
+                                    packages={[...packages].reverse()}
+                                    isLocked={false}
+                                    onEdit={handleEdit}
+                                />
+                            </div>
+                        )}
+
+                        {/* Standard View: Summary Tab */}
+                        {!isStock && tab === 'resumen' && (
+                            <div className="animate-fade-in space-y-4 pb-24">
+                                <div className="text-xs font-bold text-timber-grey uppercase tracking-widest ml-1">
+                                    Distribución por Largos
+                                </div>
+                                <SummaryTable packages={packages} />
+                            </div>
+                        )}
+
+                        {/* Standard View: Inventory Tab */}
+                        {!isStock && tab === 'inventario' && (
+                            <div className="animate-fade-in">
+                                <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
+                                    Lista de Paquetes ({packages.length})
+                                </div>
+                                <InventoryList
+                                    packages={[...packages].reverse()}
+                                    isLocked={isHistory}
+                                    onEdit={handleEdit}
+                                />
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
 
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-5 pt-0 pb-28 animate-fade-in">
-
-                    {/* Stock View: Direct List */}
-                    {isStock && (
-                        <div className="pt-5 animate-fade-in">
-                            <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
-                                Stock Disponible ({packages.length})
+                {/* ===== DESKTOP LAYOUT (two columns, no tabs) ===== */}
+                <div className="hidden md:flex flex-row flex-1 min-h-0 overflow-hidden">
+                    {/* Left Column — Balance + Summary (sticky) */}
+                    <div className="w-1/2 border-r border-gray-200 overflow-y-auto p-6">
+                        {!isStock && (
+                            <>
+                                <BalancePanel balance={balance} />
+                                <div className="mt-5">
+                                    <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
+                                        Distribución por Largos
+                                    </div>
+                                    <SummaryTable packages={packages} />
+                                </div>
+                            </>
+                        )}
+                        {isStock && (
+                            <div className="text-center py-12 text-gray-400 text-sm">
+                                Vista Stock — sin balance
                             </div>
-                            <InventoryList
-                                packages={[...packages].reverse()}
-                                isLocked={false}
-                                onEdit={handleEdit}
-                            />
+                        )}
+                    </div>
+
+                    {/* Right Column — Package List (scrollable) */}
+                    <div className="flex-1 overflow-y-auto p-6 pb-6">
+                        <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
+                            {isStock
+                                ? `Stock Disponible (${packages.length})`
+                                : `Lista de Paquetes (${packages.length})`
+                            }
                         </div>
-                    )}
-
-                    {/* Standard View: Tabs */}
-                    {!isStock && tab === 'resumen' && (
-                        <div className="animate-fade-in space-y-4 pb-24">
-                            <div className="text-xs font-bold text-timber-grey uppercase tracking-widest ml-1">
-                                Distribución por Largos
-                            </div>
-
-                            <SummaryTable packages={packages} />
-
-                        </div>
-                    )}
-
-                    {/* Tab Content: Inventario */}
-                    {!isStock && tab === 'inventario' && (
-                        <div className="animate-fade-in">
-                            <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
-                                Lista de Paquetes ({packages.length})
-                            </div>
-                            <InventoryList
-                                packages={[...packages].reverse()}
-                                isLocked={isHistory}
-                                onEdit={handleEdit}
-                            />
-                        </div>
-                    )}
+                        <InventoryList
+                            packages={[...packages].reverse()}
+                            isLocked={isHistory || false}
+                            onEdit={handleEdit}
+                        />
+                    </div>
                 </div>
             </div>
 

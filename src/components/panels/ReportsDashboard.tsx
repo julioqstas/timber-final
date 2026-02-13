@@ -412,159 +412,166 @@ export function ReportsDashboard() {
                 </div>
             </div>
 
-            {/* ======================== BALANCE DE PRODUCCIÓN ======================== */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-brand" />
-                    Balance de Producción por Grupos
-                </h3>
-                <p className="text-[10px] text-gray-400 mb-4">
-                    Distribución de volumen: Cortos vs Medios vs Largos
-                </p>
+            {/* ======== BALANCE + DETALLE: Side-by-side on desktop ======== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
 
-                {grupoBalance.length > 0 ? (
-                    <div className="space-y-3">
-                        {grupoBalance.map((g) => {
-                            const emoji = g.status === 'ok' ? '✅' : g.status === 'alert' ? '🔴' : g.status === 'warning' ? '⚠️' : '🔵';
-                            return (
-                                <div
-                                    key={g.grupo}
-                                    className={`rounded-xl p-3.5 border transition-all ${g.bgColor}`}
-                                >
-                                    {/* Row 1: Name + Volume */}
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm">{emoji}</span>
-                                            <span className="text-sm font-bold text-gray-800">
-                                                {g.grupo}
-                                            </span>
-                                        </div>
-                                        <span className={`text-sm font-extrabold ${g.textColor}`}>
-                                            {formatNumber(g.volumen)} PT
-                                        </span>
-                                    </div>
+                {/* ======================== BALANCE DE PRODUCCIÓN ======================== */}
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col">
+                    <h3 className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-brand" />
+                        Balance de Producción por Grupos
+                    </h3>
+                    <p className="text-[10px] text-gray-400 mb-4">
+                        Distribución de volumen: Cortos vs Medios vs Largos
+                    </p>
 
-                                    {/* Row 2: Progress Bar */}
-                                    <div className="relative h-3 bg-gray-200/60 rounded-full overflow-hidden mb-2">
-                                        {/* Meta marker line */}
-                                        <div
-                                            className="absolute top-0 bottom-0 w-0.5 bg-gray-400/50 z-10"
-                                            style={{ left: `${Math.min(g.meta, 100)}%` }}
-                                        />
-                                        {/* Actual bar */}
-                                        <div
-                                            className="h-full rounded-full transition-all duration-700 ease-out"
-                                            style={{
-                                                width: `${Math.min(g.porcentaje, 100)}%`,
-                                                backgroundColor: g.barColor
-                                            }}
-                                        />
-                                    </div>
-
-                                    {/* Row 3: Percentage vs Meta */}
-                                    <div className="flex items-center justify-between">
-                                        <span className={`text-xs font-bold ${g.textColor}`}>
-                                            {g.porcentaje}% real
-                                        </span>
-                                        <span className="text-[10px] text-gray-400 font-medium">
-                                            {g.metaLabel}
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-
-                        {/* Total footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <span className="text-xs text-gray-400 font-medium">Total Filtrado</span>
-                            <span className="text-sm font-extrabold text-gray-700">
-                                {formatNumber(grupoBalance.reduce((s, g) => s + g.volumen, 0))} PT
-                            </span>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="h-32 flex items-center justify-center text-gray-300 text-sm">
-                        Sin datos de grupos para el rango seleccionado
-                    </div>
-                )}
-            </div>
-
-            {/* ==================== TABLA DETALLE DE CARGAS ==================== */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                    <span className="text-base">📋</span>
-                    <h3 className="text-sm font-bold text-gray-800 m-0">Detalle por Carga</h3>
-                    <span className="text-xs text-gray-400 ml-auto">{loadSummary.length} cargas</span>
-                </div>
-
-                {loadSummary.length > 0 ? (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="bg-gray-50 border-b border-gray-200">
-                                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap sticky left-0 bg-gray-50 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Carga</th>
-                                    <th className="text-center px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Estado</th>
-                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Paq.</th>
-                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Piezas</th>
-                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Vol. PT</th>
-                                    <th className="text-right px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">M³</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loadSummary.map((load, i) => {
-                                    const m3 = load.volumenPT * 0.002359737;
-                                    const isDesp = load.estado === 'Despachado';
-                                    const rowBg = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                    {grupoBalance.length > 0 ? (
+                        <div className="space-y-3 flex-1 flex flex-col justify-between">
+                            <div className="space-y-3">
+                                {grupoBalance.map((g) => {
+                                    const emoji = g.status === 'ok' ? '✅' : g.status === 'alert' ? '🔴' : g.status === 'warning' ? '⚠️' : '🔵';
                                     return (
-                                        <tr
-                                            key={load.nombre}
-                                            className={`border-b border-gray-100 hover:bg-green-50 transition-colors ${rowBg}`}
+                                        <div
+                                            key={g.grupo}
+                                            className={`rounded-xl p-3.5 border transition-all ${g.bgColor}`}
                                         >
-                                            <td className={`px-4 py-3 font-semibold text-gray-800 whitespace-nowrap sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] ${rowBg}`}>
-                                                {load.nombre}
-                                            </td>
-                                            <td className="px-3 py-3 text-center whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${isDesp
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                    {isDesp ? 'Despachado' : 'En Proceso'}
+                                            {/* Row 1: Name + Volume */}
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm">{emoji}</span>
+                                                    <span className="text-sm font-bold text-gray-800">
+                                                        {g.grupo}
+                                                    </span>
+                                                </div>
+                                                <span className={`text-sm font-extrabold ${g.textColor}`}>
+                                                    {formatNumber(g.volumen)} PT
                                                 </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.paquetes.toLocaleString()}</td>
-                                            <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.piezas.toLocaleString()}</td>
-                                            <td className="px-3 py-3 text-right font-bold text-gray-800 whitespace-nowrap">{formatNumber(load.volumenPT)}</td>
-                                            <td className="px-4 py-3 text-right text-gray-500 whitespace-nowrap">{m3.toFixed(3)}</td>
-                                        </tr>
+                                            </div>
+
+                                            {/* Row 2: Progress Bar */}
+                                            <div className="relative h-3 bg-gray-200/60 rounded-full overflow-hidden mb-2">
+                                                {/* Meta marker line */}
+                                                <div
+                                                    className="absolute top-0 bottom-0 w-0.5 bg-gray-400/50 z-10"
+                                                    style={{ left: `${Math.min(g.meta, 100)}%` }}
+                                                />
+                                                {/* Actual bar */}
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-700 ease-out"
+                                                    style={{
+                                                        width: `${Math.min(g.porcentaje, 100)}%`,
+                                                        backgroundColor: g.barColor
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Row 3: Percentage vs Meta */}
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs font-bold ${g.textColor}`}>
+                                                    {g.porcentaje}% real
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                    {g.metaLabel}
+                                                </span>
+                                            </div>
+                                        </div>
                                     );
                                 })}
-                            </tbody>
-                            {/* Totals footer */}
-                            <tfoot>
-                                <tr className="bg-gray-100 border-t-2 border-gray-300">
-                                    <td className="px-4 py-3 font-bold text-gray-800 sticky left-0 bg-gray-100 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Total</td>
-                                    <td className="px-3 py-3"></td>
-                                    <td className="px-3 py-3 text-right font-bold text-gray-800">
-                                        {loadSummary.reduce((s, l) => s + l.paquetes, 0).toLocaleString()}
-                                    </td>
-                                    <td className="px-3 py-3 text-right font-bold text-gray-800">
-                                        {loadSummary.reduce((s, l) => s + l.piezas, 0).toLocaleString()}
-                                    </td>
-                                    <td className="px-3 py-3 text-right font-extrabold text-gray-900">
-                                        {formatNumber(loadSummary.reduce((s, l) => s + l.volumenPT, 0))}
-                                    </td>
-                                    <td className="px-4 py-3 text-right font-bold text-gray-800">
-                                        {(loadSummary.reduce((s, l) => s + l.volumenPT, 0) * 0.002359737).toFixed(3)}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                            </div>
+
+                            {/* Total footer */}
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                <span className="text-xs text-gray-400 font-medium">Total Filtrado</span>
+                                <span className="text-sm font-extrabold text-gray-700">
+                                    {formatNumber(grupoBalance.reduce((s, g) => s + g.volumen, 0))} PT
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-32 flex items-center justify-center text-gray-300 text-sm flex-1">
+                            Sin datos de grupos para el rango seleccionado
+                        </div>
+                    )}
+                </div>
+
+                {/* ==================== TABLA DETALLE DE CARGAS ==================== */}
+                <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
+                    <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0">
+                        <span className="text-base">📋</span>
+                        <h3 className="text-sm font-bold text-gray-800 m-0">Detalle por Carga</h3>
+                        <span className="text-xs text-gray-400 ml-auto">{loadSummary.length} cargas</span>
                     </div>
-                ) : (
-                    <div className="py-10 text-center text-gray-300 text-sm">
-                        Sin datos para el rango seleccionado
-                    </div>
-                )}
+
+                    {loadSummary.length > 0 ? (
+                        <div className="overflow-x-auto flex-1 md:overflow-y-auto">
+                            <table className="w-full text-sm">
+                                <thead className="sticky top-0 z-10">
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap sticky left-0 bg-gray-50 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Carga</th>
+                                        <th className="text-center px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Estado</th>
+                                        <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Paq.</th>
+                                        <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Piezas</th>
+                                        <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Vol. PT</th>
+                                        <th className="text-right px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">M³</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loadSummary.map((load, i) => {
+                                        const m3 = load.volumenPT * 0.002359737;
+                                        const isDesp = load.estado === 'Despachado';
+                                        const rowBg = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                                        return (
+                                            <tr
+                                                key={load.nombre}
+                                                className={`border-b border-gray-100 hover:bg-green-50 transition-colors ${rowBg}`}
+                                            >
+                                                <td className={`px-4 py-3 font-semibold text-gray-800 whitespace-nowrap sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] ${rowBg}`}>
+                                                    {load.nombre}
+                                                </td>
+                                                <td className="px-3 py-3 text-center whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${isDesp
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : 'bg-blue-100 text-blue-700'
+                                                        }`}>
+                                                        {isDesp ? 'Despachado' : 'En Proceso'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.paquetes.toLocaleString()}</td>
+                                                <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.piezas.toLocaleString()}</td>
+                                                <td className="px-3 py-3 text-right font-bold text-gray-800 whitespace-nowrap">{formatNumber(load.volumenPT)}</td>
+                                                <td className="px-4 py-3 text-right text-gray-500 whitespace-nowrap">{m3.toFixed(3)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                                {/* Totals footer */}
+                                <tfoot className="sticky bottom-0 z-10">
+                                    <tr className="bg-gray-100 border-t-2 border-gray-300">
+                                        <td className="px-4 py-3 font-bold text-gray-800 sticky left-0 bg-gray-100 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Total</td>
+                                        <td className="px-3 py-3"></td>
+                                        <td className="px-3 py-3 text-right font-bold text-gray-800">
+                                            {loadSummary.reduce((s, l) => s + l.paquetes, 0).toLocaleString()}
+                                        </td>
+                                        <td className="px-3 py-3 text-right font-bold text-gray-800">
+                                            {loadSummary.reduce((s, l) => s + l.piezas, 0).toLocaleString()}
+                                        </td>
+                                        <td className="px-3 py-3 text-right font-extrabold text-gray-900">
+                                            {formatNumber(loadSummary.reduce((s, l) => s + l.volumenPT, 0))}
+                                        </td>
+                                        <td className="px-4 py-3 text-right font-bold text-gray-800">
+                                            {(loadSummary.reduce((s, l) => s + l.volumenPT, 0) * 0.002359737).toFixed(3)}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="py-10 text-center text-gray-300 text-sm flex-1 flex items-center justify-center">
+                            Sin datos para el rango seleccionado
+                        </div>
+                    )}
+                </div>
+
             </div>
 
             {/* ======================== CHART: DAILY LINE ======================== */}

@@ -10,6 +10,8 @@ import { useRouter } from 'next/navigation';
 import { Lock, Unlock, X } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { LoadCard } from '@/components/cards/LoadCard';
+import { LoadsTable } from '@/components/tables/LoadsTable';
+import { StockTable } from '@/components/tables/StockTable';
 import { ReportsDashboard } from '@/components/panels/ReportsDashboard';
 import { DashboardHome } from '@/components/panels/DashboardHome';
 import { useTimberStore } from '@/store/timber-store';
@@ -178,14 +180,27 @@ export default function DashboardPage() {
                   <p className="text-gray-300 text-xs mt-1">Crea una nueva carga para empezar</p>
                 </div>
               ) : (
-                config.activeLoads.map((loadName) => (
-                  <LoadCard
-                    key={loadName}
-                    name={loadName}
-                    packages={packages.filter((p) => p.destino === loadName)}
-                    onClick={() => router.push(`/load/${encodeURIComponent(loadName)}`)}
-                  />
-                ))
+                <>
+                  {/* Mobile: Cards */}
+                  <div className="md:hidden">
+                    {config.activeLoads.map((loadName) => (
+                      <LoadCard
+                        key={loadName}
+                        name={loadName}
+                        packages={packages.filter((p) => p.destino === loadName)}
+                        onClick={() => router.push(`/load/${encodeURIComponent(loadName)}`)}
+                      />
+                    ))}
+                  </div>
+                  {/* Desktop: Table */}
+                  <div className="hidden md:block">
+                    <LoadsTable
+                      loads={config.activeLoads}
+                      packages={packages}
+                      onClickLoad={(name) => router.push(`/load/${encodeURIComponent(name)}`)}
+                    />
+                  </div>
+                </>
               )}
               <button
                 className="w-full py-3 rounded-input bg-brand-light text-brand font-bold text-sm border-none cursor-pointer hover:bg-green-100 transition-colors mt-2"
@@ -206,30 +221,49 @@ export default function DashboardPage() {
                   <p className="text-gray-300 text-xs mt-1">Las cargas despachadas aparecerán aquí</p>
                 </div>
               ) : (
-                config.historyLoads.map((loadName) => (
-                  <div key={loadName} className="relative">
-                    <LoadCard
-                      name={loadName}
-                      packages={packages.filter((p) => p.destino === loadName)}
+                <>
+                  {/* Mobile: Cards */}
+                  <div className="md:hidden">
+                    {config.historyLoads.map((loadName) => (
+                      <div key={loadName} className="relative">
+                        <LoadCard
+                          name={loadName}
+                          packages={packages.filter((p) => p.destino === loadName)}
+                          isHistory
+                          onClick={() => router.push(`/load/${encodeURIComponent(loadName)}`)}
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUnlockTarget(loadName);
+                            setUnlockPassword('');
+                            setUnlockError('');
+                            setUnlockSuccess(false);
+                          }}
+                          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-100 active:scale-95 transition-all z-10"
+                          title="Reabrir carga"
+                        >
+                          <Unlock size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Desktop: Table */}
+                  <div className="hidden md:block">
+                    <LoadsTable
+                      loads={config.historyLoads}
+                      packages={packages}
                       isHistory
-                      onClick={() => router.push(`/load/${encodeURIComponent(loadName)}`)}
-                    />
-                    {/* Unlock button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUnlockTarget(loadName);
+                      onClickLoad={(name) => router.push(`/load/${encodeURIComponent(name)}`)}
+                      onUnlock={(name) => {
+                        setUnlockTarget(name);
                         setUnlockPassword('');
                         setUnlockError('');
                         setUnlockSuccess(false);
                       }}
-                      className="absolute top-4 right-4 w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-100 active:scale-95 transition-all z-10"
-                      title="Reabrir carga"
-                    >
-                      <Unlock size={16} />
-                    </button>
+                    />
                   </div>
-                ))
+                </>
               )}
             </div>
           )}
@@ -258,11 +292,24 @@ export default function DashboardPage() {
               <p className="text-gray-300 text-xs mt-1">Crea paquetes con el botón +</p>
             </div>
           ) : (
-            <InventoryList
-              packages={[...stockPackages].reverse()}
-              isLocked={false}
-              onEdit={handleEdit}
-            />
+            <>
+              {/* Mobile: Cards */}
+              <div className="md:hidden">
+                <InventoryList
+                  packages={[...stockPackages].reverse()}
+                  isLocked={false}
+                  onEdit={handleEdit}
+                />
+              </div>
+              {/* Desktop: Table */}
+              <div className="hidden md:block">
+                <StockTable
+                  packages={[...stockPackages].reverse()}
+                  isLocked={false}
+                  onEdit={handleEdit}
+                />
+              </div>
+            </>
           )}
         </div>
       )}
