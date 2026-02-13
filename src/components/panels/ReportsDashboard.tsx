@@ -241,7 +241,42 @@ export function ReportsDashboard() {
             });
     }, [filteredGrupos]);
 
+    // --- Per-Load Summary (for detail table) ---
+    const loadSummary = useMemo(() => {
+        const map = new Map<string, {
+            nombre: string;
+            estado: string;
+            fechaMin: string;
+            fechaMax: string;
+            paquetes: number;
+            piezas: number;
+            volumenPT: number;
+        }>();
 
+        filtered.forEach(row => {
+            const existing = map.get(row.nombre_carga);
+            if (existing) {
+                existing.paquetes += 1;
+                existing.piezas += (row.total_piezas || 0);
+                existing.volumenPT += (row.volumen_pt_total || 0);
+                if (row.fecha_empaquetado < existing.fechaMin) existing.fechaMin = row.fecha_empaquetado;
+                if (row.fecha_empaquetado > existing.fechaMax) existing.fechaMax = row.fecha_empaquetado;
+            } else {
+                map.set(row.nombre_carga, {
+                    nombre: row.nombre_carga,
+                    estado: row.estado_carga || 'Activo',
+                    fechaMin: row.fecha_empaquetado || '',
+                    fechaMax: row.fecha_empaquetado || '',
+                    paquetes: 1,
+                    piezas: row.total_piezas || 0,
+                    volumenPT: row.volumen_pt_total || 0,
+                });
+            }
+        });
+
+        return Array.from(map.values())
+            .sort((a, b) => b.fechaMax.localeCompare(a.fechaMax));
+    }, [filtered]);
 
     // --- Custom Tooltip ---
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -450,6 +485,84 @@ export function ReportsDashboard() {
                 ) : (
                     <div className="h-32 flex items-center justify-center text-gray-300 text-sm">
                         Sin datos de grupos para el rango seleccionado
+                    </div>
+                )}
+            </div>
+
+            {/* ==================== TABLA DETALLE DE CARGAS ==================== */}
+            <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                    <span className="text-base">📋</span>
+                    <h3 className="text-sm font-bold text-gray-800 m-0">Detalle por Carga</h3>
+                    <span className="text-xs text-gray-400 ml-auto">{loadSummary.length} cargas</span>
+                </div>
+
+                {loadSummary.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap sticky left-0 bg-gray-50 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Carga</th>
+                                    <th className="text-center px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Estado</th>
+                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Paq.</th>
+                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Piezas</th>
+                                    <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Vol. PT</th>
+                                    <th className="text-right px-4 py-2.5 font-semibold text-gray-600 whitespace-nowrap">M³</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loadSummary.map((load, i) => {
+                                    const m3 = load.volumenPT * 0.002359737;
+                                    const isDesp = load.estado === 'Despachado';
+                                    const rowBg = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                                    return (
+                                        <tr
+                                            key={load.nombre}
+                                            className={`border-b border-gray-100 hover:bg-green-50 transition-colors ${rowBg}`}
+                                        >
+                                            <td className={`px-4 py-3 font-semibold text-gray-800 whitespace-nowrap sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] ${rowBg}`}>
+                                                {load.nombre}
+                                            </td>
+                                            <td className="px-3 py-3 text-center whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${isDesp
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                    {isDesp ? 'Despachado' : 'En Proceso'}
+                                                </span>
+                                            </td>
+                                            <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.paquetes.toLocaleString()}</td>
+                                            <td className="px-3 py-3 text-right font-medium text-gray-700 whitespace-nowrap">{load.piezas.toLocaleString()}</td>
+                                            <td className="px-3 py-3 text-right font-bold text-gray-800 whitespace-nowrap">{formatNumber(load.volumenPT)}</td>
+                                            <td className="px-4 py-3 text-right text-gray-500 whitespace-nowrap">{m3.toFixed(3)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                            {/* Totals footer */}
+                            <tfoot>
+                                <tr className="bg-gray-100 border-t-2 border-gray-300">
+                                    <td className="px-4 py-3 font-bold text-gray-800 sticky left-0 bg-gray-100 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">Total</td>
+                                    <td className="px-3 py-3"></td>
+                                    <td className="px-3 py-3 text-right font-bold text-gray-800">
+                                        {loadSummary.reduce((s, l) => s + l.paquetes, 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-3 py-3 text-right font-bold text-gray-800">
+                                        {loadSummary.reduce((s, l) => s + l.piezas, 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-3 py-3 text-right font-extrabold text-gray-900">
+                                        {formatNumber(loadSummary.reduce((s, l) => s + l.volumenPT, 0))}
+                                    </td>
+                                    <td className="px-4 py-3 text-right font-bold text-gray-800">
+                                        {(loadSummary.reduce((s, l) => s + l.volumenPT, 0) * 0.002359737).toFixed(3)}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="py-10 text-center text-gray-300 text-sm">
+                        Sin datos para el rango seleccionado
                     </div>
                 )}
             </div>
