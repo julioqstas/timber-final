@@ -41,7 +41,7 @@ export function DashboardHome({
     onSettings,
 }: DashboardHomeProps) {
     return (
-        <div className="overflow-y-auto h-full pb-28 bg-white">
+        <div className="overflow-y-auto h-full pb-28 md:pb-6 bg-white">
             {/* ==================== HEADER ==================== */}
             <div className="px-5 pt-6 pb-4 flex items-start justify-between">
                 <div>
@@ -55,7 +55,7 @@ export function DashboardHome({
                 <div className="flex items-center gap-2.5">
                     <button
                         onClick={onSettings}
-                        className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer border-none hover:bg-gray-200 transition-colors"
+                        className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer border-none hover:bg-gray-200 transition-colors md:hidden"
                         aria-label="Configuración"
                     >
                         <Settings size={20} />
@@ -121,7 +121,7 @@ export function DashboardHome({
 
             {/* ==================== STATS GRID ==================== */}
             <div className="px-5 mb-5">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {/* Cargas en Proceso */}
                     <button
                         onClick={() => onNavigate('cargas')}
@@ -194,35 +194,37 @@ export function DashboardHome({
                     Acciones Rápidas
                 </div>
 
-                {/* Nueva Carga — Primary */}
-                <button
-                    onClick={onNewLoad}
-                    className="w-full bg-brand text-white rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-brand-dark transition-colors border-none active:scale-[0.98] mb-3 shadow-sm"
-                >
-                    <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                        <Truck size={22} />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <div className="font-bold text-[15px] leading-tight">Nueva Carga</div>
-                        <div className="text-xs text-white/70 mt-0.5">Crear una carga nueva</div>
-                    </div>
-                    <ChevronRight size={20} className="text-white/50 shrink-0" />
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Nueva Carga — Primary */}
+                    <button
+                        onClick={onNewLoad}
+                        className="w-full bg-brand text-white rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-brand-dark transition-colors border-none active:scale-[0.98] shadow-sm"
+                    >
+                        <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                            <Truck size={22} />
+                        </div>
+                        <div className="flex-1 text-left">
+                            <div className="font-bold text-[15px] leading-tight">Nueva Carga</div>
+                            <div className="text-xs text-white/70 mt-0.5">Crear una carga nueva</div>
+                        </div>
+                        <ChevronRight size={20} className="text-white/50 shrink-0" />
+                    </button>
 
-                {/* Nuevo Paquete — Secondary */}
-                <button
-                    onClick={onNewPackage}
-                    className="w-full bg-white text-timber-dark rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 active:scale-[0.98] shadow-sm"
-                >
-                    <div className="w-11 h-11 rounded-xl bg-brand-light flex items-center justify-center text-brand shrink-0">
-                        <Package size={22} />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <div className="font-bold text-[15px] leading-tight">Nuevo Paquete</div>
-                        <div className="text-xs text-timber-grey mt-0.5">Agregar a Stock Libres</div>
-                    </div>
-                    <ChevronRight size={20} className="text-gray-300 shrink-0" />
-                </button>
+                    {/* Nuevo Paquete — Secondary */}
+                    <button
+                        onClick={onNewPackage}
+                        className="w-full bg-white text-timber-dark rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 active:scale-[0.98] shadow-sm"
+                    >
+                        <div className="w-11 h-11 rounded-xl bg-brand-light flex items-center justify-center text-brand shrink-0">
+                            <Package size={22} />
+                        </div>
+                        <div className="flex-1 text-left">
+                            <div className="font-bold text-[15px] leading-tight">Nuevo Paquete</div>
+                            <div className="text-xs text-timber-grey mt-0.5">Agregar a Stock Libres</div>
+                        </div>
+                        <ChevronRight size={20} className="text-gray-300 shrink-0" />
+                    </button>
+                </div>
             </div>
         </div>
     );

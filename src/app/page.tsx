@@ -27,21 +27,17 @@ type CargasSubTab = 'activas' | 'historial';
 export default function DashboardPage() {
   const router = useRouter();
 
-  // Restore view state from sessionStorage (so back-navigation works)
-  const [appView, setAppView] = useState<AppView>(() => {
-    if (typeof window !== 'undefined') {
-      return (sessionStorage.getItem('fq_appView') as AppView) || 'inicio';
-    }
-    return 'inicio';
-  });
-  const [cargasTab, setCargasTab] = useState<CargasSubTab>(() => {
-    if (typeof window !== 'undefined') {
-      return (sessionStorage.getItem('fq_cargasTab') as CargasSubTab) || 'activas';
-    }
-    return 'activas';
-  });
+  // View state — always start with defaults for SSR, restore on client via useEffect
+  const [appView, setAppView] = useState<AppView>('inicio');
+  const [cargasTab, setCargasTab] = useState<CargasSubTab>('activas');
 
-  // Persist view state to sessionStorage
+  // Restore + persist view state via sessionStorage (client-side only)
+  useEffect(() => {
+    const saved = sessionStorage.getItem('fq_appView') as AppView | null;
+    if (saved) setAppView(saved);
+    const savedTab = sessionStorage.getItem('fq_cargasTab') as CargasSubTab | null;
+    if (savedTab) setCargasTab(savedTab);
+  }, []);
   useEffect(() => { sessionStorage.setItem('fq_appView', appView); }, [appView]);
   useEffect(() => { sessionStorage.setItem('fq_cargasTab', cargasTab); }, [cargasTab]);
   const [showNewLoad, setShowNewLoad] = useState(false);
@@ -123,6 +119,7 @@ export default function DashboardPage() {
       subtitle={subtitle}
       hideHeader={appView === 'inicio'}
       onSettings={appView === 'inicio' ? () => setAppView('settings') : undefined}
+      onSettingsSidebar={() => setAppView('settings')}
       onBack={appView !== 'inicio' ? () => setAppView('inicio') : undefined}
       activeTab={appView !== 'settings' ? (appView as DockTab) : 'inicio'}
       onTabChange={handleTabChange}
@@ -148,7 +145,7 @@ export default function DashboardPage() {
 
       {/* ==================== CARGAS VIEW ==================== */}
       {appView === 'cargas' && (
-        <div className="overflow-y-auto p-5 pb-28 h-full animate-fade-in">
+        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in">
           {/* Sub-tabs: Activas / Historial */}
           <div className="flex bg-gray-200/50 rounded-xl p-1 mb-4">
             <button
@@ -241,7 +238,7 @@ export default function DashboardPage() {
 
       {/* ==================== STOCK VIEW ==================== */}
       {appView === 'stock' && (
-        <div className="overflow-y-auto p-5 pb-28 h-full animate-fade-in">
+        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in">
           {/* Stock summary card */}
           <div className="bg-surface-card rounded-card p-4 shadow-card border border-black/[0.02] mb-4 flex items-center justify-between">
             <div>
@@ -272,14 +269,14 @@ export default function DashboardPage() {
 
       {/* ==================== REPORTES VIEW ==================== */}
       {appView === 'reportes' && (
-        <div className="overflow-y-auto p-5 pb-28 h-full animate-fade-in">
+        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in">
           <ReportsDashboard />
         </div>
       )}
 
       {/* ==================== SETTINGS VIEW ==================== */}
       {appView === 'settings' && (
-        <div className="overflow-y-auto p-5 pb-28 h-full animate-fade-in">
+        <div className="overflow-y-auto p-5 pb-28 md:pb-6 h-full animate-fade-in">
           <ConfigSection
             title="Especies"
             items={config.species}

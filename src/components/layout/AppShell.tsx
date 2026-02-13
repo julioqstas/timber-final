@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Image from 'next/image';
 import { useTimberStore } from '@/store/timber-store';
+import { Sidebar } from './Sidebar';
 
 type DockTab = 'inicio' | 'cargas' | 'stock' | 'reportes';
 
@@ -18,6 +19,7 @@ interface AppShellProps {
     title?: string;
     subtitle?: string;
     onSettings?: () => void;
+    onSettingsSidebar?: () => void;
     onBack?: () => void;
     headerActions?: ReactNode;
     hideHeader?: boolean;
@@ -32,6 +34,7 @@ export function AppShell({
     title = '¡Hola! 👋',
     subtitle = '¿Listo para operar?',
     onSettings,
+    onSettingsSidebar,
     onBack,
     headerActions,
     hideHeader = false,
@@ -155,188 +158,199 @@ export function AppShell({
     ];
 
     return (
-        <div className="flex flex-col h-full max-w-[480px] mx-auto bg-white relative">
-            {/* Loading Overlay */}
-            {isLoading && (
-                <div className="absolute inset-0 bg-white/80 z-[60] flex items-center justify-center backdrop-blur-sm animate-fade-in">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="w-8 h-8 border-4 border-brand/30 border-t-brand rounded-full animate-spin"></div>
-                        <span className="text-brand font-semibold text-sm">Cargando datos...</span>
-                    </div>
-                </div>
-            )}
+        <div className="flex flex-row h-full w-full bg-white relative">
+            {/* Sidebar — visible on md+ */}
+            <Sidebar
+                activeTab={activeTab}
+                onTabChange={onTabChange}
+                onFab={onFab}
+                onSettings={onSettingsSidebar}
+            />
 
-            {/* Header */}
-            {!hideHeader && (
-                <header className="bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50">
-                    {showBack && (
-                        <button
-                            onClick={onBack || (() => router.back())}
-                            className="bg-transparent border-none text-white p-1 -ml-2 cursor-pointer flex items-center justify-center active:bg-white/10 rounded-full transition-colors"
-                            aria-label="Volver"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <path d="M19 12H5" />
-                                <path d="M12 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                    )}
-                    <div>
-                        <Image
-                            src="/images/logo-fq.png.png"
-                            alt="FQ System"
-                            width={120}
-                            height={42}
-                            priority
-                            className="h-9 w-auto object-contain"
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <h1 className="text-base font-bold tracking-tight leading-tight m-0">
-                            {title}
-                        </h1>
-                        <p className="text-xs opacity-90 font-normal m-0">{subtitle}</p>
-                    </div>
-                    {/* Right-side actions */}
-                    {headerActions && (
-                        <div className="flex items-center gap-1">
-                            {headerActions}
-                        </div>
-                    )}
-                    {onSettings && (
-                        <button
-                            className="ml-auto bg-transparent border-none text-white text-2xl cursor-pointer"
-                            onClick={onSettings}
-                            aria-label="Configuración"
-                        >
-                            ⚙️
-                        </button>
-                    )}
-                </header>
-            )}
-
-            {/* Content Area — with Pull-to-Refresh */}
-            <div
-                ref={contentRef}
-                className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col"
-                style={{ WebkitOverflowScrolling: 'touch' }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-            >
-                {/* Pull-to-refresh indicator */}
-                {(pullDistance > 0 || isRefreshing) && (
-                    <div
-                        className="flex items-center justify-center shrink-0 overflow-hidden transition-all"
-                        style={{ height: pullDistance }}
-                    >
-                        <div className={`flex flex-col items-center gap-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
-                            <div
-                                className="transition-transform duration-150"
-                                style={{
-                                    transform: isRefreshing
-                                        ? 'rotate(0deg)'
-                                        : `rotate(${Math.min((pullDistance / PULL_THRESHOLD) * 180, 180)}deg)`
-                                }}
-                            >
-                                {isRefreshing ? (
-                                    <div className="w-5 h-5 border-2 border-brand/30 border-t-brand rounded-full animate-spin" />
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#057b57" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M12 5v14" />
-                                        <path d="M19 12l-7 7-7-7" />
-                                    </svg>
-                                )}
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-medium">
-                                {isRefreshing
-                                    ? 'Actualizando...'
-                                    : pullDistance >= PULL_THRESHOLD
-                                        ? 'Soltar para actualizar'
-                                        : 'Jalar para actualizar'}
-                            </span>
+            {/* Main column (header + content + bottombar) */}
+            <div className="flex flex-col flex-1 min-w-0 relative">
+                {/* Loading Overlay */}
+                {isLoading && (
+                    <div className="absolute inset-0 bg-white/80 z-60 flex items-center justify-center backdrop-blur-sm animate-fade-in">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-8 h-8 border-4 border-brand/30 border-t-brand rounded-full animate-spin"></div>
+                            <span className="text-brand font-semibold text-sm">Cargando datos...</span>
                         </div>
                     </div>
                 )}
-                {children}
-            </div>
 
-            {/* ==================== 5-TAB BOTTOM DOCK ==================== */}
-            {showDock && (
-                <div className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md px-2 py-1.5 pb-[max(8px,env(safe-area-inset-bottom))] border-t border-gray-200 flex items-end justify-around z-[100]">
-                    {/* Left tabs (Inicio, Cargas) */}
-                    {tabs.slice(0, 2).map((tab) => {
-                        const isActive = activeTab === tab.id;
-                        return (
+                {/* Header — hidden on desktop when sidebar is active */}
+                {!hideHeader && (
+                    <header className={`bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50 ${showDock ? 'md:hidden' : ''}`}>
+                        {showBack && (
                             <button
-                                key={tab.id}
-                                onClick={() => onTabChange!(tab.id)}
-                                className={`border-none bg-transparent cursor-pointer flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all min-w-[56px] ${isActive
-                                    ? 'text-brand'
-                                    : 'text-gray-400 active:text-gray-600'
-                                    }`}
+                                onClick={onBack || (() => router.back())}
+                                className="bg-transparent border-none text-white p-1 -ml-2 cursor-pointer flex items-center justify-center active:bg-white/10 rounded-full transition-colors"
+                                aria-label="Volver"
                             >
-                                <span className={`transition-transform ${isActive ? 'scale-110' : ''}`}>
-                                    {tab.icon}
-                                </span>
-                                <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'font-bold' : ''}`}>
-                                    {tab.label}
-                                </span>
-                                {isActive && (
-                                    <div className="w-4 h-0.5 rounded-full bg-brand mt-0.5" />
-                                )}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="28"
+                                    height="28"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M19 12H5" />
+                                    <path d="M12 19l-7-7 7-7" />
+                                </svg>
                             </button>
-                        );
-                    })}
-
-                    {/* Center FAB */}
-                    <button
-                        className="bg-brand text-white w-[52px] h-[52px] rounded-full flex items-center justify-center shadow-fab border-none -mt-5 cursor-pointer hover:bg-brand-dark transition-all active:scale-95"
-                        onClick={onFab}
-                        aria-label="Crear nuevo"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                    </button>
-
-                    {/* Right tabs (Stock, Reportes) */}
-                    {tabs.slice(2).map((tab) => {
-                        const isActive = activeTab === tab.id;
-                        return (
+                        )}
+                        <div>
+                            <Image
+                                src="/images/logo-fq.png.png"
+                                alt="FQ System"
+                                width={120}
+                                height={42}
+                                priority
+                                className="h-9 w-auto object-contain"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <h1 className="text-base font-bold tracking-tight leading-tight m-0">
+                                {title}
+                            </h1>
+                            <p className="text-xs opacity-90 font-normal m-0">{subtitle}</p>
+                        </div>
+                        {/* Right-side actions */}
+                        {headerActions && (
+                            <div className="flex items-center gap-1">
+                                {headerActions}
+                            </div>
+                        )}
+                        {onSettings && (
                             <button
-                                key={tab.id}
-                                onClick={() => onTabChange!(tab.id)}
-                                className={`border-none bg-transparent cursor-pointer flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all min-w-[56px] ${isActive
-                                    ? 'text-brand'
-                                    : 'text-gray-400 active:text-gray-600'
-                                    }`}
+                                className="ml-auto bg-transparent border-none text-white text-2xl cursor-pointer"
+                                onClick={onSettings}
+                                aria-label="Configuración"
                             >
-                                <span className={`transition-transform ${isActive ? 'scale-110' : ''}`}>
-                                    {tab.icon}
-                                </span>
-                                <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'font-bold' : ''}`}>
-                                    {tab.label}
-                                </span>
-                                {isActive && (
-                                    <div className="w-4 h-0.5 rounded-full bg-brand mt-0.5" />
-                                )}
+                                ⚙️
                             </button>
-                        );
-                    })}
+                        )}
+                    </header>
+                )}
+
+                {/* Content Area — with Pull-to-Refresh */}
+                <div
+                    ref={contentRef}
+                    className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col"
+                    style={{ WebkitOverflowScrolling: 'touch' }}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* Pull-to-refresh indicator */}
+                    {(pullDistance > 0 || isRefreshing) && (
+                        <div
+                            className="flex items-center justify-center shrink-0 overflow-hidden transition-all"
+                            style={{ height: pullDistance }}
+                        >
+                            <div className={`flex flex-col items-center gap-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+                                <div
+                                    className="transition-transform duration-150"
+                                    style={{
+                                        transform: isRefreshing
+                                            ? 'rotate(0deg)'
+                                            : `rotate(${Math.min((pullDistance / PULL_THRESHOLD) * 180, 180)}deg)`
+                                    }}
+                                >
+                                    {isRefreshing ? (
+                                        <div className="w-5 h-5 border-2 border-brand/30 border-t-brand rounded-full animate-spin" />
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#057b57" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 5v14" />
+                                            <path d="M19 12l-7 7-7-7" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-medium">
+                                    {isRefreshing
+                                        ? 'Actualizando...'
+                                        : pullDistance >= PULL_THRESHOLD
+                                            ? 'Soltar para actualizar'
+                                            : 'Jalar para actualizar'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                    {children}
                 </div>
-            )}
+
+                {/* ==================== 5-TAB BOTTOM DOCK ==================== */}
+                {showDock && (
+                    <div className="absolute bottom-0 w-full bg-white/95 backdrop-blur-md px-2 py-1.5 pb-[max(8px,env(safe-area-inset-bottom))] border-t border-gray-200 flex items-end justify-around z-100 md:hidden">
+                        {/* Left tabs (Inicio, Cargas) */}
+                        {tabs.slice(0, 2).map((tab) => {
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => onTabChange!(tab.id)}
+                                    className={`border-none bg-transparent cursor-pointer flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all min-w-[56px] ${isActive
+                                        ? 'text-brand'
+                                        : 'text-gray-400 active:text-gray-600'
+                                        }`}
+                                >
+                                    <span className={`transition-transform ${isActive ? 'scale-110' : ''}`}>
+                                        {tab.icon}
+                                    </span>
+                                    <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'font-bold' : ''}`}>
+                                        {tab.label}
+                                    </span>
+                                    {isActive && (
+                                        <div className="w-4 h-0.5 rounded-full bg-brand mt-0.5" />
+                                    )}
+                                </button>
+                            );
+                        })}
+
+                        {/* Center FAB */}
+                        <button
+                            className="bg-brand text-white w-[52px] h-[52px] rounded-full flex items-center justify-center shadow-fab border-none -mt-5 cursor-pointer hover:bg-brand-dark transition-all active:scale-95"
+                            onClick={onFab}
+                            aria-label="Crear nuevo"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                        </button>
+
+                        {/* Right tabs (Stock, Reportes) */}
+                        {tabs.slice(2).map((tab) => {
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => onTabChange!(tab.id)}
+                                    className={`border-none bg-transparent cursor-pointer flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all min-w-[56px] ${isActive
+                                        ? 'text-brand'
+                                        : 'text-gray-400 active:text-gray-600'
+                                        }`}
+                                >
+                                    <span className={`transition-transform ${isActive ? 'scale-110' : ''}`}>
+                                        {tab.icon}
+                                    </span>
+                                    <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'font-bold' : ''}`}>
+                                        {tab.label}
+                                    </span>
+                                    {isActive && (
+                                        <div className="w-4 h-0.5 rounded-full bg-brand mt-0.5" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
