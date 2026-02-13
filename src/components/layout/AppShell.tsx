@@ -5,7 +5,7 @@
 // Replaces legacy #app-frame + .header + .dock structure
 // ============================================================================
 
-import { ReactNode } from 'react';
+import { ReactNode, useRef, useState as useLocalState, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Image from 'next/image';
@@ -48,6 +48,60 @@ export function AppShell({
         fetchInitialData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // ==================== PULL-TO-REFRESH ====================
+    const contentRef = useRef<HTMLDivElement>(null);
+    const touchStartY = useRef(0);
+    const touchCurrentY = useRef(0);
+    const isPulling = useRef(false);
+    const [pullDistance, setPullDistance] = useLocalState(0);
+    const [isRefreshing, setIsRefreshing] = useLocalState(false);
+
+    const PULL_THRESHOLD = 70; // px needed to trigger refresh
+    const MAX_PULL = 120;      // max visual pull distance
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        const el = contentRef.current;
+        if (!el || isRefreshing) return;
+        // Only activate when scrolled to top
+        if (el.scrollTop <= 0) {
+            touchStartY.current = e.touches[0].clientY;
+            isPulling.current = true;
+        }
+    }, [isRefreshing]);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!isPulling.current || isRefreshing) return;
+        const el = contentRef.current;
+        if (!el || el.scrollTop > 0) {
+            isPulling.current = false;
+            setPullDistance(0);
+            return;
+        }
+        touchCurrentY.current = e.touches[0].clientY;
+        const delta = touchCurrentY.current - touchStartY.current;
+        if (delta > 0) {
+            // Diminishing pull effect (rubber-band)
+            const dist = Math.min(delta * 0.45, MAX_PULL);
+            setPullDistance(dist);
+        }
+    }, [isRefreshing]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (!isPulling.current) return;
+        isPulling.current = false;
+        if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+            setIsRefreshing(true);
+            setPullDistance(PULL_THRESHOLD * 0.6); // hold at small height
+            fetchInitialData().finally(() => {
+                setIsRefreshing(false);
+                setPullDistance(0);
+            });
+        } else {
+            setPullDistance(0);
+        }
+    }, [pullDistance, isRefreshing, fetchInitialData]);
+    // ==================== END PULL-TO-REFRESH ====================
 
     const isHome = pathname === '/';
     const showBack = !isHome || !!onBack;
@@ -171,8 +225,49 @@ export function AppShell({
                 </header>
             )}
 
-            {/* Content Area */}
-            <div className="flex-1 overflow-hidden relative flex flex-col">
+            {/* Content Area — with Pull-to-Refresh */}
+            <div
+                ref={contentRef}
+                className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                {/* Pull-to-refresh indicator */}
+                {(pullDistance > 0 || isRefreshing) && (
+                    <div
+                        className="flex items-center justify-center shrink-0 overflow-hidden transition-all"
+                        style={{ height: pullDistance }}
+                    >
+                        <div className={`flex flex-col items-center gap-1 ${isRefreshing ? 'animate-pulse' : ''}`}>
+                            <div
+                                className="transition-transform duration-150"
+                                style={{
+                                    transform: isRefreshing
+                                        ? 'rotate(0deg)'
+                                        : `rotate(${Math.min((pullDistance / PULL_THRESHOLD) * 180, 180)}deg)`
+                                }}
+                            >
+                                {isRefreshing ? (
+                                    <div className="w-5 h-5 border-2 border-brand/30 border-t-brand rounded-full animate-spin" />
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#057b57" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 5v14" />
+                                        <path d="M19 12l-7 7-7-7" />
+                                    </svg>
+                                )}
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-medium">
+                                {isRefreshing
+                                    ? 'Actualizando...'
+                                    : pullDistance >= PULL_THRESHOLD
+                                        ? 'Soltar para actualizar'
+                                        : 'Jalar para actualizar'}
+                            </span>
+                        </div>
+                    </div>
+                )}
                 {children}
             </div>
 
