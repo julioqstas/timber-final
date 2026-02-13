@@ -1,0 +1,32 @@
+{
+  "cargas": {
+    "id": 1,
+    "nombre_carga": "Carga 001-2026",
+    "nro_interno": "2da Carga",
+    "estado": "Despachado",
+    "created_at": "2026-02-13T00:51:14.084171+00:00"
+  },
+  "paquetes": {
+    "id": 1,
+    "carga_id": 8,
+    "codigo_paquete": "PT-1086",
+    "fecha_empaquetado": "2025-12-13",
+    "especie": "Shihuahuaco",
+    "tipo_producto": "Decking",
+    "certificacion": "No Certificado",
+    "calidad": "1ra",
+    "acabado": "S4S-E4E",
+    "humedad": "KD",
+    "espesor_mm": 21,
+    "ancho_mm": 145,
+    "observaciones": null,
+    "created_at": "2026-02-13T00:51:14.093138+00:00"
+  },
+  "detalles_paquete": {
+    "id": 1,
+    "paquete_id": 1,
+    "largo_pies": 19,
+    "cantidad_piezas": 77,
+    "grupo_largos": "Largos (13'+)"
+  }
+}
