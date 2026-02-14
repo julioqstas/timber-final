@@ -255,6 +255,7 @@ export default function LoadDetailPage() {
             onTabChange={handleNavigation}
             activeTab={isStock ? 'stock' : 'cargas'}
             hideDock={true}
+            onFab={() => setShowFabMenu(true)} // Connect Global Sidebar FAB
         >
             <div className="flex flex-col md:flex-row h-full bg-surface-app">
 
@@ -429,7 +430,8 @@ export default function LoadDetailPage() {
 
             {/* ==================== FLOATING FAB (Detail Page) ==================== */}
             {!isHistory && !isStock && (
-                <div className="absolute bottom-5 right-5 flex flex-col gap-3 z-50">
+                // Adjusted container to align with Desktop Sidebar FAB
+                <div className="fixed bottom-5 right-5 md:bottom-24 md:right-8 flex flex-col gap-3 z-50">
                     {/* Estimator mini button */}
                     <button
                         onClick={() => setShowEstimator(true)}
@@ -439,10 +441,10 @@ export default function LoadDetailPage() {
                     >
                         🧮
                     </button>
-                    {/* Main FAB */}
+                    {/* Main FAB - Hidden on desktop since Sidebar FAB handles it */}
                     <button
                         onClick={() => setShowFabMenu(true)}
-                        className="w-14 h-14 rounded-full bg-brand text-white shadow-fab flex items-center justify-center cursor-pointer hover:bg-brand-dark transition-all active:scale-95 border-none"
+                        className="md:hidden w-14 h-14 rounded-full bg-brand text-white shadow-fab flex items-center justify-center cursor-pointer hover:bg-brand-dark transition-all active:scale-95 border-none"
                         aria-label="Agregar paquete"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -452,6 +454,7 @@ export default function LoadDetailPage() {
                     </button>
                 </div>
             )}
+
 
             {/* ==================== FAB SELECTION MENU ==================== */}
             <BottomSheet
