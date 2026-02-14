@@ -133,3 +133,25 @@ body {
   display: inline-block;
   margin-right: 8px;
 }
+
+/* ============================================================================
+   Custom Scrollbar (WebKit)
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 100vh;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
