@@ -23,6 +23,7 @@ interface AppShellProps {
     onBack?: () => void;
     headerActions?: ReactNode;
     hideHeader?: boolean;
+    hideDock?: boolean;
     // New 5-tab dock
     activeTab?: DockTab;
     onTabChange?: (tab: DockTab) => void;
@@ -38,6 +39,7 @@ export function AppShell({
     onBack,
     headerActions,
     hideHeader = false,
+    hideDock = false,
     activeTab,
     onTabChange,
     onFab,
@@ -108,7 +110,7 @@ export function AppShell({
 
     const isHome = pathname === '/';
     const showBack = !isHome || !!onBack;
-    const showDock = !!onTabChange; // Only show dock if tab handler exists
+    const showDock = !!onTabChange && !hideDock; // Only show dock if tab handler exists AND not explicitly hidden
 
     const tabs: { id: DockTab; label: string; icon: ReactNode }[] = [
         {
@@ -181,7 +183,7 @@ export function AppShell({
 
                 {/* Header — hidden on desktop when sidebar is active */}
                 {!hideHeader && (
-                    <header className={`bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50 ${showDock ? 'md:hidden' : ''}`}>
+                    <header className={`bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50`}>
                         {showBack && (
                             <button
                                 onClick={onBack || (() => router.back())}
@@ -204,7 +206,7 @@ export function AppShell({
                                 </svg>
                             </button>
                         )}
-                        <div>
+                        <div className="md:hidden">
                             <Image
                                 src="/images/logo-fq.png.png"
                                 alt="FQ System"
@@ -351,6 +353,6 @@ export function AppShell({
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

@@ -15,7 +15,7 @@ import { useLoadPackages, useStockPackages, useTimberStore } from '@/store/timbe
 import { SummaryTable } from '@/components/panels/SummaryTable';
 import { EstimatorSheet } from '@/components/panels/EstimatorSheet';
 import { InventoryList } from '@/components/panels/InventoryList';
-import { StockTable } from '@/components/tables/StockTable';
+
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { calculateLoadBalance } from '@/lib/calculations';
 import { smartExportLoad } from '@/lib/export-excel';
@@ -242,11 +242,19 @@ export default function LoadDetailPage() {
         exportButton
     );
 
+    const handleNavigation = (tab: any) => {
+        sessionStorage.setItem('fq_appView', tab);
+        router.push('/');
+    };
+
     return (
         <AppShell
             title={loadName}
             subtitle={isHistory ? 'Carga Cerrada' : 'En Proceso'}
             headerActions={headerActions}
+            onTabChange={handleNavigation}
+            activeTab={isStock ? 'stock' : 'cargas'}
+            hideDock={true}
         >
             <div className="flex flex-col md:flex-row h-full bg-surface-app">
 
@@ -351,19 +359,43 @@ export default function LoadDetailPage() {
 
                     {/* Right Column — Package List (scrollable) */}
                     <div className="flex-1 overflow-y-auto p-6 pb-6">
-                        <div className="text-xs font-bold text-timber-grey uppercase tracking-widest mb-3 ml-1">
-                            {isStock
-                                ? `Stock Disponible (${packages.length})`
-                                : `Lista de Paquetes (${packages.length})`
-                            }
+                        <div className="flex items-center justify-between mb-3 ml-1">
+                            <div className="text-xs font-bold text-timber-grey uppercase tracking-widest">
+                                {isStock
+                                    ? `Stock Disponible (${packages.length})`
+                                    : `Lista de Paquetes (${packages.length})`
+                                }
+                            </div>
+
+                            {/* Desktop Selection Toggle (since long-press is less discoverable) */}
+                            {!isStock && !isHistory && packages.length > 0 && (
+                                <button
+                                    onClick={() => {
+                                        if (isSelectionMode) {
+                                            exitSelectionMode();
+                                        } else {
+                                            setIsSelectionMode(true);
+                                        }
+                                    }}
+                                    className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${isSelectionMode
+                                        ? 'bg-brand text-white'
+                                        : 'bg-gray-100 text-timber-grey hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {isSelectionMode ? 'Cancelar Selección' : 'Seleccionar'}
+                                </button>
+                            )}
                         </div>
-                        <StockTable
+
+                        {/* Use InventoryList (Cards) on Desktop too, per user request */}
+                        <InventoryList
                             packages={[...packages].reverse()}
-                            isLocked={isHistory}
+                            isLocked={isHistory || false}
                             onEdit={handleEdit}
+                            selectionMode={isSelectionMode}
                             selectedIds={selectedItems}
                             onToggleSelection={handleToggleSelection}
-                            onSelectAll={handleSelectAll}
+                            onLongPress={handleLongPress}
                         />
                     </div>
                 </div>

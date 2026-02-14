@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 </>
               )}
               <button
-                className="w-full py-3 rounded-input bg-brand-light text-brand font-bold text-sm border-none cursor-pointer hover:bg-green-100 transition-colors mt-2"
+                className="w-full py-3 rounded-input bg-brand-light text-brand font-bold text-sm border-none cursor-pointer hover:bg-green-100 transition-colors mt-6"
                 onClick={() => setShowNewLoad(true)}
               >
                 + Nueva Carga

@@ -36,30 +36,28 @@ export function Sidebar({ activeTab, onTabChange, onFab, onSettings }: SidebarPr
     return (
         <aside className="hidden md:flex flex-col w-64 h-full bg-white border-r border-gray-200 shrink-0 z-40">
             {/* ===== Logo ===== */}
-            <div className="px-5 pt-6 pb-5 flex items-center gap-3 border-b border-gray-100">
+            <div className="px-5 pt-6 pb-5 flex items-center gap-3 border-b border-gray-100 justify-center">
                 <Image
-                    src="/images/logo-fq.png.png"
+                    src="/images/fq-big.png"
                     alt="FQ System"
-                    width={140}
-                    height={48}
+                    width={180}
+                    height={80}
                     priority
-                    className="h-10 w-auto object-contain"
+                    className="h-16 w-auto object-contain"
                 />
             </div>
 
-            {/* ===== FAB Button ===== */}
-            <div className="px-4 py-4">
-                <button
-                    onClick={onFab}
-                    className="w-full bg-brand text-white rounded-xl py-3 px-4 flex items-center justify-center gap-2.5 font-bold text-sm border-none cursor-pointer hover:bg-brand-dark transition-all active:scale-[0.97] shadow-fab"
-                >
-                    <Plus size={20} strokeWidth={2.5} />
-                    Nuevo
-                </button>
-            </div>
+            {/* ===== FAB Button (Desktop Bottom Right) ===== */}
+            <button
+                onClick={onFab}
+                className="fixed bottom-8 right-8 bg-brand text-white w-14 h-14 rounded-full shadow-fab flex items-center justify-center hover:bg-brand-dark transition-all active:scale-95 z-50 cursor-pointer border-none"
+                title="Nuevo"
+            >
+                <Plus size={28} strokeWidth={2.5} />
+            </button>
 
             {/* ===== Navigation Items ===== */}
-            <nav className="flex-1 px-3 space-y-1">
+            <nav className="flex-1 px-3 space-y-1 mt-6">
                 {navItems.map(({ id, label, icon: Icon }) => {
                     const isActive = activeTab === id;
                     return (
