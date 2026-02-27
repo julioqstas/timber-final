@@ -75,7 +75,7 @@ export function DashboardHome({
 
             {/* ==================== HERO CARD ==================== */}
             <div className="px-5 mb-5">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand via-brand to-brand-dark p-5 min-h-[130px]">
+                <div className="relative rounded-2xl overflow-hidden bg-linear-to-br from-brand via-brand to-brand-dark p-5 min-h-[130px]">
                     {/* Decorative circles */}
                     <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10" />
                     <div className="absolute -bottom-4 -right-10 w-24 h-24 rounded-full bg-white/5" />

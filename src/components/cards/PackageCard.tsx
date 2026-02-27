@@ -64,7 +64,7 @@ export function PackageCard({
     return (
         <div
             className={`
-        relative rounded-[14px] p-4 mb-3 border shadow-sm transition-all select-none
+        relative rounded-pkg p-4 mb-3 border shadow-sm transition-all select-none
         ${locked
                     ? 'opacity-70 bg-[#fcfcfc] pointer-events-none'
                     : 'cursor-pointer active:scale-[0.99]'
