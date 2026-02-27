@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FQ Packing System",
+  title: "TID - Generador Packing List Decking",
   description: "Sistema de Control de Paquetería y Cargas de Madera",
 };
 
