@@ -536,6 +536,12 @@ export const useTimberStore = create<TimberState>()(
             partialize: (state) => ({
                 config: state.config,
             }),
+            onRehydrateStorage: () => {
+                return (state) => {
+                    // After localStorage hydration completes, always fetch fresh data from Supabase
+                    state?.fetchInitialData();
+                };
+            },
         }
     )
 );

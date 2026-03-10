@@ -1,20 +1,16 @@
 'use client';
 
 // ============================================================================
-// DashboardHome — Inicio/Dashboard KPI View
-// Premium SaaS-style dashboard with hero, stats grid, and quick actions
+// DashboardHome — Unified TID UX Pattern
+// Centered question → Pulsing icon → Action cards → Mini module previews
+// Matches the Inicio flow of tid-balance-sniffs and tid-gantt-hornos
 // ============================================================================
 
-import { formatPT } from '@/lib/formatters';
-import Image from 'next/image';
 import {
     Truck,
     Package,
     BarChart3,
-    FolderOpen,
-    Plus,
     Settings,
-    ChevronRight,
 } from 'lucide-react';
 
 interface DashboardHomeProps {
@@ -30,201 +26,103 @@ interface DashboardHomeProps {
 }
 
 export function DashboardHome({
-    activeCount,
-    stockCount,
-    stockPT,
-    totalPT,
-    totalPackages,
     onNewLoad,
     onNewPackage,
     onNavigate,
     onSettings,
 }: DashboardHomeProps) {
     return (
-        <div className="overflow-y-auto h-full pb-28 md:pb-6 bg-white">
-            {/* ==================== HEADER ==================== */}
-            <div className="px-5 pt-6 pb-4 flex items-start justify-between">
-                <div>
-                    <h1 className="text-[1.55rem] font-extrabold text-timber-dark leading-tight tracking-tight m-0">
-                        Generador de
-                        <br />
-                        Packing List
-                    </h1>
-                    <p className="text-sm text-timber-grey mt-1 m-0">Decking S4S-E4E</p>
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <button
-                        onClick={onSettings}
-                        className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 cursor-pointer border-none hover:bg-gray-200 transition-colors md:hidden"
-                        aria-label="Configuración"
-                    >
-                        <Settings size={20} />
-                    </button>
-                    <div className="h-10 flex items-center justify-center">
-                        <Image
-                            src="/images/logo-fq.png.png"
-                            alt="FQ System"
-                            width={120}
-                            height={40}
-                            priority
-                            className="h-9 w-auto object-contain"
-                        />
-                    </div>
-                </div>
-            </div>
+        <div className="flex flex-col items-center justify-center text-center px-6 py-12 animate-fade-in"
+            style={{ minHeight: 'calc(100dvh - 200px)' }}>
 
-            {/* ==================== HERO CARD ==================== */}
-            <div className="px-5 mb-5">
-                <div className="relative rounded-2xl overflow-hidden bg-linear-to-br from-brand via-brand to-brand-dark p-5 min-h-[130px]">
-                    {/* Decorative circles */}
-                    <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10" />
-                    <div className="absolute -bottom-4 -right-10 w-24 h-24 rounded-full bg-white/5" />
-                    <div className="absolute top-3 right-4 w-14 h-14 rounded-full bg-white/8" />
+            {/* ==================== CENTERED QUESTION ==================== */}
+            <h2 className="text-[22px] md:text-[28px] font-extrabold leading-tight m-0"
+                style={{ color: 'var(--color-timber-dark)' }}>
+                ¿Qué operación de
+            </h2>
+            <h2 className="text-[22px] md:text-[28px] font-extrabold leading-tight m-0"
+                style={{ color: 'var(--color-brand)' }}>
+                Packing List
+            </h2>
+            <h2 className="text-[22px] md:text-[28px] font-extrabold leading-tight mb-8 m-0"
+                style={{ color: 'var(--color-timber-dark)' }}>
+                te gustaría realizar hoy?
+            </h2>
 
-                    {/* Hero illustration */}
-                    <div className="absolute right-2 bottom-0 w-[120px] h-[100px] opacity-30">
-                        <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                            {/* Forklift silhouette */}
-                            <rect x="15" y="55" width="50" height="25" rx="4" fill="white" fillOpacity="0.6" />
-                            <rect x="20" y="35" width="15" height="20" rx="2" fill="white" fillOpacity="0.4" />
-                            <circle cx="25" cy="85" r="6" fill="white" fillOpacity="0.5" />
-                            <circle cx="55" cy="85" r="6" fill="white" fillOpacity="0.5" />
-                            {/* Pallet */}
-                            <rect x="70" y="45" width="35" height="8" rx="2" fill="white" fillOpacity="0.3" />
-                            <rect x="75" y="30" width="10" height="15" rx="1" fill="white" fillOpacity="0.4" />
-                            <rect x="88" y="35" width="10" height="10" rx="1" fill="white" fillOpacity="0.35" />
-                            <rect x="70" y="53" width="4" height="12" fill="white" fillOpacity="0.2" />
-                            <rect x="100" y="53" width="4" height="12" fill="white" fillOpacity="0.2" />
-                        </svg>
-                    </div>
-
-                    {/* Text content */}
-                    <div className="relative z-10">
-                        <h2 className="text-white text-xl font-bold m-0 mb-1.5">
-                            ¡Hola Bienvenido! 👋
-                        </h2>
-                        <p className="text-white/80 text-sm m-0 leading-relaxed max-w-[220px]">
-                            ¿Listo para empezar a gestionar tus cargas?
-                        </p>
-                    </div>
-
-                    {/* Carousel dots (decorative) */}
-                    <div className="flex gap-1.5 mt-4 relative z-10">
-                        <div className="w-6 h-1.5 rounded-full bg-white" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                    </div>
+            {/* ==================== PULSING ANIMATED ICON ==================== */}
+            <div className="relative flex items-center justify-center mb-6" style={{ width: 80, height: 80 }}>
+                <span className="absolute inset-0 rounded-full" style={{
+                    background: '#057b57',
+                    animation: 'pulse-ring 1.8s cubic-bezier(0.215,0.61,0.355,1) infinite',
+                    opacity: 0.4,
+                }} />
+                <div className="relative z-10 flex items-center justify-center rounded-full text-white w-full h-full"
+                    style={{
+                        background: 'var(--color-brand)',
+                        boxShadow: 'var(--shadow-fab)',
+                        animation: 'pulse-scale 2.4s ease-in-out infinite',
+                    }}>
+                    <Truck size={30} />
                 </div>
             </div>
 
-            {/* ==================== STATS GRID ==================== */}
-            <div className="px-5 mb-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {/* Cargas en Proceso */}
-                    <button
-                        onClick={() => onNavigate('cargas')}
-                        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-left cursor-pointer hover:shadow-md transition-all active:scale-[0.97] group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center text-brand mb-3 group-hover:scale-110 transition-transform">
-                            <Truck size={20} />
-                        </div>
-                        <div className="text-3xl font-extrabold text-timber-dark leading-none">
-                            {activeCount}
-                        </div>
-                        <div className="text-xs text-timber-grey mt-1 font-medium">
-                            Cargas en Proceso
-                        </div>
-                    </button>
+            {/* ==================== ACTION CARDS ==================== */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mb-10">
+                {/* Nueva Carga */}
+                <button
+                    onClick={onNewLoad}
+                    className="flex-1 flex flex-col items-center gap-2 py-6 px-5 bg-white rounded-2xl border border-gray-100 cursor-pointer transition-all hover:border-brand/30 hover:shadow-lg active:scale-[0.97]"
+                    style={{ boxShadow: 'var(--shadow-card)' }}
+                >
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                        style={{ background: 'var(--color-brand-light)' }}>
+                        <Truck size={22} style={{ color: 'var(--color-brand)' }} />
+                    </div>
+                    <span className="text-[14px] font-bold" style={{ color: 'var(--color-timber-dark)' }}>
+                        Nueva Carga
+                    </span>
+                    <span className="text-[11px] font-medium" style={{ color: 'var(--color-timber-grey)' }}>
+                        Crear una carga nueva
+                    </span>
+                </button>
 
-                    {/* Paquetes Libres */}
-                    <button
-                        onClick={() => onNavigate('stock')}
-                        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-left cursor-pointer hover:shadow-md transition-all active:scale-[0.97] group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center text-brand mb-3 group-hover:scale-110 transition-transform">
-                            <Package size={20} />
-                        </div>
-                        <div className="text-3xl font-extrabold text-timber-dark leading-none">
-                            {stockCount}
-                        </div>
-                        <div className="text-xs text-timber-grey mt-1 font-medium">
-                            Paquetes Libres ({formatPT(stockPT)} PT)
-                        </div>
-                    </button>
-
-                    {/* Total PT */}
-                    <button
-                        onClick={() => onNavigate('reportes')}
-                        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-left cursor-pointer hover:shadow-md transition-all active:scale-[0.97] group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center text-brand mb-3 group-hover:scale-110 transition-transform">
-                            <BarChart3 size={20} />
-                        </div>
-                        <div className="text-3xl font-extrabold text-timber-dark leading-none">
-                            {formatPT(totalPT)}
-                        </div>
-                        <div className="text-xs text-timber-grey mt-1 font-medium">
-                            Total PT operados
-                        </div>
-                    </button>
-
-                    {/* Paquetes Enzunchados */}
-                    <button
-                        onClick={() => onNavigate('reportes')}
-                        className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-left cursor-pointer hover:shadow-md transition-all active:scale-[0.97] group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-brand-light flex items-center justify-center text-brand mb-3 group-hover:scale-110 transition-transform">
-                            <FolderOpen size={20} />
-                        </div>
-                        <div className="text-3xl font-extrabold text-timber-dark leading-none">
-                            {totalPackages}
-                        </div>
-                        <div className="text-xs text-timber-grey mt-1 font-medium">
-                            Paquetes Enzunchados
-                        </div>
-                    </button>
-                </div>
+                {/* Nuevo Paquete */}
+                <button
+                    onClick={onNewPackage}
+                    className="flex-1 flex flex-col items-center gap-2 py-6 px-5 bg-white rounded-2xl border border-gray-100 cursor-pointer transition-all hover:border-brand/30 hover:shadow-lg active:scale-[0.97]"
+                    style={{ boxShadow: 'var(--shadow-card)' }}
+                >
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                        style={{ background: 'var(--color-brand-light)' }}>
+                        <Package size={22} style={{ color: 'var(--color-brand)' }} />
+                    </div>
+                    <span className="text-[14px] font-bold" style={{ color: 'var(--color-timber-dark)' }}>
+                        Nuevo Paquete
+                    </span>
+                    <span className="text-[11px] font-medium" style={{ color: 'var(--color-timber-grey)' }}>
+                        Agregar a Stock Libres
+                    </span>
+                </button>
             </div>
 
-            {/* ==================== QUICK ACTIONS ==================== */}
-            <div className="px-5">
-                <div className="text-[11px] font-bold text-timber-grey uppercase tracking-[0.12em] mb-3 ml-1">
-                    Acciones Rápidas
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* Nueva Carga — Primary */}
+            {/* ==================== MINI MODULE PREVIEWS ==================== */}
+            <div className="grid grid-cols-4 gap-3 w-full max-w-sm">
+                {[
+                    { icon: <Truck size={16} />, label: 'Cargas', color: '#057b57', onClick: () => onNavigate('cargas') },
+                    { icon: <Package size={16} />, label: 'Stock', color: '#7c3aed', onClick: () => onNavigate('stock') },
+                    { icon: <BarChart3 size={16} />, label: 'Reportes', color: '#d97706', onClick: () => onNavigate('reportes') },
+                    { icon: <Settings size={16} />, label: 'Config', color: '#4f46e5', onClick: onSettings },
+                ].map(m => (
                     <button
-                        onClick={onNewLoad}
-                        className="w-full bg-brand text-white rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-brand-dark transition-colors border-none active:scale-[0.98] shadow-sm"
+                        key={m.label}
+                        onClick={m.onClick}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white cursor-pointer border-none transition-all hover:opacity-80 active:scale-95"
+                        style={{ boxShadow: 'var(--shadow-card)', opacity: 0.5 }}
                     >
-                        <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                            <Truck size={22} />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <div className="font-bold text-[15px] leading-tight">Nueva Carga</div>
-                            <div className="text-xs text-white/70 mt-0.5">Crear una carga nueva</div>
-                        </div>
-                        <ChevronRight size={20} className="text-white/50 shrink-0" />
+                        <span style={{ color: m.color }}>{m.icon}</span>
+                        <span className="text-[10px] font-bold" style={{ color: 'var(--color-timber-grey)' }}>{m.label}</span>
                     </button>
-
-                    {/* Nuevo Paquete — Secondary */}
-                    <button
-                        onClick={onNewPackage}
-                        className="w-full bg-white text-timber-dark rounded-2xl p-4 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 active:scale-[0.98] shadow-sm"
-                    >
-                        <div className="w-11 h-11 rounded-xl bg-brand-light flex items-center justify-center text-brand shrink-0">
-                            <Package size={22} />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <div className="font-bold text-[15px] leading-tight">Nuevo Paquete</div>
-                            <div className="text-xs text-timber-grey mt-0.5">Agregar a Stock Libres</div>
-                        </div>
-                        <ChevronRight size={20} className="text-gray-300 shrink-0" />
-                    </button>
-                </div>
+                ))}
             </div>
         </div>
     );

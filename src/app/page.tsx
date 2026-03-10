@@ -156,10 +156,8 @@ export default function DashboardPage() {
   // Dynamic header
   const headerConfig: Record<AppView, { title: string; subtitle: string }> = {
     inicio: {
-      title: '¡Hola! 👋',
-      subtitle: activeCount > 0
-        ? `Tienes ${activeCount} carga${activeCount !== 1 ? 's' : ''} activa${activeCount !== 1 ? 's' : ''}`
-        : '¿Listo para empezar?',
+      title: 'Generador de Packing List',
+      subtitle: 'Decking S4S-E4E',
     },
     cargas: { title: 'Cargas', subtitle: `${activeCount} en proceso · ${config.historyLoads.length} despachados` },
     stock: { title: 'Paquetes Libres', subtitle: `${stockPackages.length} paquete${stockPackages.length !== 1 ? 's' : ''} · ${formatPT(stockPT)} PT` },
@@ -173,7 +171,7 @@ export default function DashboardPage() {
     <AppShell
       title={title}
       subtitle={subtitle}
-      hideHeader={appView === 'inicio'}
+      hideHeader={false}
       onSettings={appView === 'inicio' ? () => setAppView('settings') : undefined}
       onSettingsSidebar={() => setAppView('settings')}
       onBack={appView !== 'inicio' ? () => setAppView('inicio') : undefined}

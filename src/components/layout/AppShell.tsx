@@ -183,7 +183,7 @@ export function AppShell({
 
                 {/* Header — hidden on desktop when sidebar is active */}
                 {!hideHeader && (
-                    <header className={`bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50`}>
+                    <header className={`md:hidden bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50`}>
                         {showBack && (
                             <button
                                 onClick={onBack || (() => router.back())}
