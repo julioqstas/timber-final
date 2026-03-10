@@ -160,7 +160,7 @@ export function AppShell({
     ];
 
     return (
-        <div className="flex flex-row h-full w-full bg-white relative">
+        <div className="flex flex-row h-full w-full relative" style={{ background: 'var(--color-surface-app)' }}>
             {/* Sidebar — visible on md+ */}
             <Sidebar
                 activeTab={activeTab}
@@ -181,64 +181,48 @@ export function AppShell({
                     </div>
                 )}
 
-                {/* Header — hidden on desktop when sidebar is active */}
+                {/* Mobile header — matches Balance/Gantt pattern */}
                 {!hideHeader && (
-                    <header className={`md:hidden bg-brand text-white px-5 py-3 pt-[max(12px,env(safe-area-inset-top))] flex items-center gap-3 shadow-header shrink-0 z-50`}>
-                        {showBack && (
-                            <button
-                                onClick={onBack || (() => router.back())}
-                                className="bg-transparent border-none text-white p-1 -ml-2 cursor-pointer flex items-center justify-center active:bg-white/10 rounded-full transition-colors"
-                                aria-label="Volver"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="28"
-                                    height="28"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M19 12H5" />
-                                    <path d="M12 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                        )}
-                        <div className="md:hidden">
-                            <Image
-                                src="/images/logo-fq.png.png"
-                                alt="FQ System"
-                                width={120}
-                                height={42}
-                                priority
-                                className="h-9 w-auto object-contain"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <h1 className="text-base font-bold tracking-tight leading-tight m-0">
+                    <header className="md:hidden text-white px-4 py-3 flex items-center gap-3 shrink-0"
+                        style={{ background: 'var(--color-brand)', boxShadow: 'var(--shadow-header)' }}>
+                        <Image
+                            src="/images/fq-big.png"
+                            alt="FQ"
+                            width={32}
+                            height={32}
+                            priority
+                            className="w-8 h-8 rounded-full object-contain shrink-0"
+                            style={{ background: 'white' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest leading-none m-0">
+                                TID - Generador Packing List
+                            </p>
+                            <p className="text-[14px] font-bold leading-tight truncate m-0">
                                 {title}
-                            </h1>
-                            <p className="text-xs opacity-90 font-normal m-0">{subtitle}</p>
+                            </p>
                         </div>
-                        {/* Right-side actions */}
                         {headerActions && (
                             <div className="flex items-center gap-1">
                                 {headerActions}
                             </div>
                         )}
-                        {onSettings && (
-                            <button
-                                className="ml-auto bg-transparent border-none text-white text-2xl cursor-pointer"
-                                onClick={onSettings}
-                                aria-label="Configuración"
-                            >
-                                ⚙️
-                            </button>
-                        )}
                     </header>
                 )}
+
+                {/* Desktop topbar — matches Balance/Gantt pattern */}
+                <div className="hidden md:flex items-center px-6 py-3.5 border-b border-gray-100 bg-white gap-4 shrink-0 min-h-[64px]">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-[18px] font-extrabold tracking-tight m-0"
+                            style={{ color: 'var(--color-timber-dark)' }}>
+                            {title}
+                        </h1>
+                        <p className="text-[11px] font-medium m-0"
+                            style={{ color: 'var(--color-timber-grey)' }}>
+                            {subtitle}
+                        </p>
+                    </div>
+                </div>
 
                 {/* Content Area — with Pull-to-Refresh */}
                 <div

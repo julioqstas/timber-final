@@ -43,6 +43,8 @@
   --shadow-sheet: 0 -5px 30px rgba(0, 0, 0, 0.1);
   --shadow-fab: 0 4px 15px rgba(5, 123, 87, 0.4);
   --shadow-header: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --shadow-sidebar: 2px 0 20px rgba(0, 0, 0, 0.06);
+  --shadow-dock: 0 -2px 20px rgba(0, 0, 0, 0.08);
 
   /* Animations */
   --animate-fade-in: fade-in 0.3s ease-out;
@@ -70,13 +72,28 @@
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  80%, 100% { transform: scale(1.4); opacity: 0; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+
+  80%,
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
 
 @keyframes pulse-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* ============================================================================
